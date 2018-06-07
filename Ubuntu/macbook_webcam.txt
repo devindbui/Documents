@@ -1,0 +1,47 @@
+sudo apt install git
+sudo apt install curl
+sudo apt install cpio
+sudo apt install xz-utils
+sudo apt install make
+sudo apt install mplayer
+mkdir ~/git
+cd ~/git
+git clone https://github.com/patjak/bcwc_pcie.git
+cd bcwc_pcie/firmware/
+make
+sudo make install
+
+----
+
+sudo apt-get install linux-headers-4.15.0-22-generic git kmod libssl-dev checkinstall
+cd ~/git/bcwc_pcie
+make
+sudo checkinstall
+EOF<enter>
+<enter>
+sudo depmod
+sudo modprobe facetimehd
+sudo modprobe -r bdc_pci
+sudo gedit /etc/modules  <add 'facetimehd'>
+sudo gedit /lib/systemd/system-sleep/99facetimehd
+
+<add begin>
+#!/bin/sh
+case $1/$2 in
+  pre/*)
+    echo "Going to $2..."
+    modprobe -r facetimehd
+    ;;
+  post/*)
+    echo "Waking up from $2..."
+    modprobe -r bdc_pci
+    modprobe facetimehd
+    ;;
+esac
+<add end>
+
+sudo chmod a+x /lib/systemd/system-sleep/99facetimehd
+
+<restart>
+
+mplayer -vo gl tv://
